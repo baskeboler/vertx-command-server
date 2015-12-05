@@ -1,4 +1,6 @@
-package com.victor.commandserver.parser;
+package com.victor.commandserver.parser.command;
+
+import com.victor.commandserver.parser.expression.Expression;
 
 /**
  * Creado por Victor Gil<baskeboler@gmail.com>, 12/5/15.

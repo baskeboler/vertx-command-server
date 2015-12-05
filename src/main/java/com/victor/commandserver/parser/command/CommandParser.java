@@ -1,9 +1,11 @@
-package com.victor.commandserver.parser;
+package com.victor.commandserver.parser.command;
+import com.victor.commandserver.parser.AbstractParser;
+import com.victor.commandserver.parser.expression.ExpressionParser;
 import org.parboiled.Rule;
 import org.parboiled.annotations.BuildParseTree;
 
 @BuildParseTree
-public class CommandParser extends AbstractParser<Command>{
+public class CommandParser extends AbstractParser<Command> {
 
   ExpressionParser expressionParser;
 

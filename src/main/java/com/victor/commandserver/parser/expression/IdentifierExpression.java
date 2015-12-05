@@ -1,4 +1,7 @@
-package com.victor.commandserver.parser;
+package com.victor.commandserver.parser.expression;
+
+import com.victor.commandserver.parser.command.Command;
+import com.victor.commandserver.parser.Variables;
 
 public class IdentifierExpression implements Command {
   String identifier;

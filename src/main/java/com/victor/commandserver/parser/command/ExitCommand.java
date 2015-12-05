@@ -1,4 +1,4 @@
-package com.victor.commandserver.parser;
+package com.victor.commandserver.parser.command;
 
 public class ExitCommand implements Command {
 

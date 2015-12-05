@@ -5,8 +5,8 @@ import org.parboiled.parserunners.ParseRunner;
 import org.parboiled.parserunners.ReportingParseRunner;
 import org.parboiled.support.ParsingResult;
 
-import com.victor.commandserver.parser.Command;
-import com.victor.commandserver.parser.CommandParser;
+import com.victor.commandserver.parser.command.Command;
+import com.victor.commandserver.parser.command.CommandParser;
 
 import io.vertx.core.Context;
 import io.vertx.core.Future;
