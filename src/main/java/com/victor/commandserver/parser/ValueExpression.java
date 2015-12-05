@@ -1,6 +1,6 @@
 package com.victor.commandserver.parser;
 
-public class ValueExpression implements Expression{
+public class ValueExpression implements Command {
   int value;
   public  ValueExpression(int v) {
     value = v;

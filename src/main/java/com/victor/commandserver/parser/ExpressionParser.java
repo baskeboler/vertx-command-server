@@ -1,54 +1,66 @@
 package com.victor.commandserver.parser;
 
 import org.parboiled.Rule;
+import org.parboiled.annotations.BuildParseTree;
+import org.parboiled.support.StringVar;
+import org.parboiled.support.Var;
 
-public class ExpressionParser extends AbstractParser<Expression> {
+@BuildParseTree
+public class ExpressionParser extends AbstractParser<Command> {
 
   @Override
   public Rule Root() {
-    // TODO Auto-generated method stub
     return FirstOf(Assignment(), Evaluation());
   }
 
-  private Rule Assignment() {
-    // TODO Auto-generated method stub
-    return null;
+  public Rule Assignment() {
+    StringVar id = new StringVar();
+    return Sequence(Identifier(), id.set(match()), '=', Evaluation(), push(new AssignmentExpression(id.get(), pop())));
   }
 
   public Rule Evaluation() {
-    // TODO Auto-generated method stub
     return FirstOf(Sum(), Term());
   }
 
-  private Rule Term() {
+  public Rule Term() {
     // TODO Auto-generated method stub
     return FirstOf(Variable(), Number());
   }
 
   public Rule Sum() {
-
+    Var<Expression> left = new Var(), right = new Var();
     // TODO Auto-generated method stub
-    return Sequence(Term(), '+', Term(), push(new AdditionExpression(pop(), pop())));
+    return Sequence(Term(), '+', Evaluation(),
+            right.set(pop()), left.set(pop()),
+            push(new AdditionExpression(left.get(), right.get())));
   }
 
-  private Rule Number() {
-    // TODO Auto-generated method stub
+  public Rule Number() {
     return Sequence(Digits(), push(new ValueExpression(Integer.valueOf(match()))));
   }
 
-  private Rule Digits() {
-    // TODO Auto-generated method stub
+  public Rule Digits() {
     return OneOrMore(Digit());
   }
 
-  private Rule Digit() {
-    // TODO Auto-generated method stub
+  public Rule Digit() {
     return CharRange('0', '9');
   }
 
   public Rule Variable() {
-    // TODO Auto-generated method stub
-    return null;
+    return Sequence(Identifier(), push(new IdentifierExpression(match())));
+  }
+
+  public Rule Identifier() {
+    return Sequence(AlphaChar(), ZeroOrMore(AlphaNumericChar()));
+  }
+
+  public Rule AlphaChar() {
+    return FirstOf(CharRange('a', 'z'), CharRange('A', 'Z'));
+  }
+
+  public Rule AlphaNumericChar() {
+    return FirstOf(AlphaChar(), Digit());
   }
 
 }

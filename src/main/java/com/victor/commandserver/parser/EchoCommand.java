@@ -1,6 +1,6 @@
 package com.victor.commandserver.parser;
 
-public class EchoCommand extends Command{
+public class EchoCommand implements Command {
   /**
    * 
    */
@@ -17,5 +17,10 @@ public class EchoCommand extends Command{
 
   public void setText(String text) {
     this.text = text;
+  }
+
+  @Override
+  public int getValue() {
+    return 0;
   }
 }

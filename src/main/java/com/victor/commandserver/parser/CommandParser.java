@@ -1,50 +1,57 @@
 package com.victor.commandserver.parser;
-import org.parboiled.BaseParser;
 import org.parboiled.Rule;
 import org.parboiled.annotations.BuildParseTree;
-import org.parboiled.support.Var;
 
 @BuildParseTree
 public class CommandParser extends AbstractParser<Command>{
 
-  Rule Comando() {
-    return FirstOf(ComandoEcho(), ComandoEval(), ComandoSalir());
-  }
+  ExpressionParser expressionParser;
 
-  public Rule ComandoEcho() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+  public CommandParser(ExpressionParser expParse) {
+    expressionParser = expParse;
 
-  public Rule ComandoEval() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  public Rule ComandoSalir() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-  
-  public Rule Espacio() {
-    return ZeroOrMore(AnyOf(" "));
-  }
-  
-  public Rule Digito() {
-    return CharRange('0', '9');
-  }
-  
-  public Rule Digitos() {
-    return OneOrMore(Digito());
-  }
-  
-  public Rule Numero() {
-    return Sequence(Digitos(), pop(new Var()));
   }
 
   @Override
   public Rule Root() {
     // TODO Auto-generated method stub
-    return null;
+    return Sequence(Comando(), EOI);
+  }
+
+  Rule Comando() {
+    return FirstOf(ComandoEcho(), ComandoSalir(), ComandoEval());
+  }
+
+  public Rule ComandoEcho() {
+    // TODO Auto-generated method stub
+    return Sequence("echo", Espacio(), Texto(), push(new EchoCommand(match())));
+  }
+
+  public Rule ComandoSalir() {
+    return Sequence("salir", push(new ExitCommand()));
+  }
+
+  public Rule ComandoEval() {
+    return Sequence(expressionParser.Root(), push(new EvalCommand(pop())));
+  }
+
+  public Rule Espacio() {
+    return ZeroOrMore(AnyOf(" \t\f"));
+  }
+
+  public Rule Texto() {
+    return Sequence(Palabra(), ZeroOrMore(Espacio(), Palabra()));
+  }
+
+  public Rule Palabra() {
+    return OneOrMore(AlphaNumericChar());
+  }
+
+  public Rule AlphaNumericChar() {
+    return FirstOf(CharRange('a', 'z'), CharRange('A', 'Z'), Digito());
+  }
+
+  public Rule Digito() {
+    return CharRange('0', '9');
   }
 }

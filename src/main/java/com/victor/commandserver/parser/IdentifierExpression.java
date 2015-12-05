@@ -1,6 +1,6 @@
 package com.victor.commandserver.parser;
 
-public class IdentifierExpression implements Expression{
+public class IdentifierExpression implements Command {
   String identifier;
   public IdentifierExpression(String name) {
     // TODO Auto-generated constructor stub
@@ -12,4 +12,7 @@ public class IdentifierExpression implements Expression{
     return Variables.getValue(identifier);
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
 }

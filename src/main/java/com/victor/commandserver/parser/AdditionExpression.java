@@ -1,6 +1,6 @@
 package com.victor.commandserver.parser;
 
-public class AdditionExpression implements Expression{
+public class AdditionExpression implements Command {
   private Expression left;
   private Expression right;
   public AdditionExpression(Expression left, Expression right) {
