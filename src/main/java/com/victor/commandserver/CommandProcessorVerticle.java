@@ -1,36 +1,24 @@
 package com.victor.commandserver;
 
-import org.parboiled.Parboiled;
-import org.parboiled.parserunners.ParseRunner;
-import org.parboiled.parserunners.ReportingParseRunner;
-import org.parboiled.support.ParsingResult;
-
 import com.victor.commandserver.parser.command.Command;
-import com.victor.commandserver.parser.command.CommandParser;
-
-import io.vertx.core.Context;
+import com.victor.commandserver.parser.command.EchoCommand;
+import com.victor.commandserver.parser.command.ExitCommand;
+import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class CommandProcessorVerticle extends BaseVerticle {
+public class CommandProcessorVerticle extends AbstractVerticle {
   public static final String COMMAND_PROCESSOR = "com.victor.command.processor";
-  private CommandParser parser;
-  private ParseRunner<Command> parseRunner;
-
-  @Override
-  public void init(Vertx vertx, Context context) {
-    // TODO Auto-generated method stub
-    super.init(vertx, context);
-    parser = Parboiled.createParser(CommandParser.class);
-    parseRunner = new ReportingParseRunner<Command>(parser.Root());
-  }
+  private static final Logger logger = LoggerFactory.getLogger(CommandProcessorVerticle.class);
 
   @Override
   public void start(Future<Void> startFuture) throws Exception {
     // TODO Auto-generated method stub
+    logger.info("Starting CommandProcessorVerticle");
     EventBus eventBus = vertx.eventBus();
     // vertx.
     eventBus.<Buffer>consumer(COMMAND_PROCESSOR).handler(this::handleCommand);
@@ -39,22 +27,29 @@ public class CommandProcessorVerticle extends BaseVerticle {
   }
 
   public void handleCommand(Message<Buffer> msg) {
-    info("Handling command");
-    byte[] bytes = msg.body().getBytes();
-    String commandStr = new String(bytes);
-    ParsingResult<Command> result = parseRunner.run(commandStr);
-    if (result.hasErrors()) {
-      String errors = result.parseErrors.stream().map(e -> e.getErrorMessage()).reduce("", (s1, s2) -> s1 + "\n" + s2);
-      
-      msg.fail(1, errors);
+    logger.info("Handling command");
+    Buffer buffer = msg.body();
+    vertx.eventBus().<Command>send(CommandParserVerticle.COMMAND_PARSER, buffer, reply -> {
+      logger.info("Got response from parser");
+      Message<Command> result = reply.result();
+      Buffer resp = doCommand(result.body());
+      msg.reply(resp);
+    });
+
+  }
+
+  private Buffer doCommand(Command cmd) {
+    Buffer resp = Buffer.buffer();
+    if (cmd instanceof EchoCommand) {
+      EchoCommand echo = (EchoCommand) cmd;
+      logger.info("Executing echo for {}", echo.getText());
+      resp.appendString(echo.getText());
+    } else if (cmd instanceof ExitCommand) {
+      ExitCommand exitCommand = (ExitCommand) cmd;
+      logger.info("Executing exit");
+      resp.appendString("Exit");
     }
+    return resp;
   }
-
-  @Override
-  protected String getName() {
-    // TODO Auto-generated method stub
-    return this.getClass().getName();
-  }
-
 
 }

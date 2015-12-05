@@ -9,9 +9,16 @@ import java.io.*;
 /**
  * Creado por Victor Gil<baskeboler@gmail.com>, 12/5/15.
  */
-public class CommandCodec implements MessageCodec<Command, Command> {
+public class CommandCodec<C extends Command> implements MessageCodec<C, C> {
+
+    Class<C> type;
+
+    public CommandCodec(Class<C> type) {
+        this.type = type;
+    }
+
     @Override
-    public void encodeToWire(Buffer buffer, Command command) {
+    public void encodeToWire(Buffer buffer, C command) {
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ObjectOutputStream outputStream = new ObjectOutputStream(byteArrayOutputStream);
@@ -25,16 +32,16 @@ public class CommandCodec implements MessageCodec<Command, Command> {
     }
 
     @Override
-    public Command decodeFromWire(int i, Buffer buffer) {
+    public C decodeFromWire(int i, Buffer buffer) {
 
         int size = buffer.getInt(i);
         i += 4;
         byte[] bytes = buffer.getBytes(i, i + size);
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        Command o = null;
+        C o = null;
         try {
             ObjectInputStream objIn = new ObjectInputStream(in);
-            o = (Command) objIn.readObject();
+            o = (C) objIn.readObject();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -44,13 +51,13 @@ public class CommandCodec implements MessageCodec<Command, Command> {
     }
 
     @Override
-    public Command transform(Command command) {
+    public C transform(C command) {
         return command;
     }
 
     @Override
     public String name() {
-        return getClass().getName();
+        return String.format("%s<%s>", getClass().getName(), type.getName());
     }
 
     @Override

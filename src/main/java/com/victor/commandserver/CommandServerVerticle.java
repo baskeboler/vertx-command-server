@@ -27,7 +27,54 @@ public class CommandServerVerticle extends AbstractVerticle {
         info("Starting Command Server Verticle");
         //eventBus = vertx.eventBus();
         //Future<Void> deployProcessors = deployProcessors();
+        Future<Void> parsersDeployed = Future.future(), processorsDeployed = Future.future();
+        deployParsers(parsersDeployed);
+        parsersDeployed.setHandler(res -> {
+            if (res.succeeded()) {
+                deployProcessors(processorsDeployed);
+            } else {
+                startFuture.fail(res.cause());
+            }
+        });
+        processorsDeployed.setHandler(res -> {
+            if (res.succeeded()) {
+                startNetServer(startFuture);
+            } else {
+                startFuture.fail(res.cause());
+            }
+        });
         //deployProcessors.setHandler(handler);
+    }
+
+    private Future<Void> deployParsers(Future<Void> future) {
+        DeploymentOptions options = new DeploymentOptions().setWorker(true).setInstances(8);
+        vertx.deployVerticle(CommandParserVerticle.class.getName(), options, res -> {
+            if (res.succeeded()) {
+                logger.info("Parsers deployment succeeded");
+                future.complete();
+            } else {
+                logger.error("Parsers deployment failed.");
+                future.fail(res.cause());
+            }
+        });
+        return future;
+    }
+
+    private Future<Void> deployProcessors(Future<Void> future) {
+        DeploymentOptions options = new DeploymentOptions().setWorker(true).setInstances(8);
+        vertx.deployVerticle(CommandProcessorVerticle.class.getName(), options, res -> {
+            if (res.succeeded()) {
+                logger.info("Processors deployment succeeded");
+                future.complete();
+            } else {
+                logger.error("Processors deployment failed.");
+                future.fail(res.cause());
+            }
+        });
+        return future;
+    }
+
+    private void startNetServer(Future<Void> startFuture) {
         int port = 1234;
         vertx.createNetServer().connectHandler(new Handler<NetSocket>() {
             ParseToken nextToken;
@@ -40,14 +87,18 @@ public class CommandServerVerticle extends AbstractVerticle {
                 Handler<Buffer> h = buffer -> {
                     if (nextToken == ParseToken.SIZE) {
                         int size = buffer.getInt(0);
+                        logger.info("got size={}", size);
                         parser.fixedSizeMode(size);
                         nextToken = ParseToken.PAYLOAD;
                     } else {
+                        logger.info("Got payload, sending to processor");
                         vertx.eventBus().<Buffer>send("com.victor.command.processor", buffer, reply -> {
+                            logger.info("Got response from processor");
                             Buffer body = reply.result().body();
-                            Buffer result = Buffer.buffer().appendInt(body.length()).appendBuffer(buffer);
+                            Buffer result = Buffer.buffer().appendInt(body.length()).appendBuffer(body);
                             socket.write(result);
                         });
+                        parser.fixedSizeMode(4);
                         nextToken = ParseToken.SIZE;
                     }
                 };

@@ -13,12 +13,12 @@ import static org.testng.Assert.assertTrue;
  * Creado por Victor Gil<baskeboler@gmail.com>, 12/5/15.
  */
 public class CommandCodecTest {
-    private CommandCodec codec;
     Buffer buffer;
+    private CommandCodec codec;
 
     @BeforeTest
     public void init() {
-        codec = new CommandCodec();
+        codec = new CommandCodec(ExitCommand.class);
         buffer = Buffer.buffer();
 
     }

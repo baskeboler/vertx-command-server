@@ -25,4 +25,5 @@ public class EvalCommand implements Command {
     public int getValue() {
         return 0;
     }
+
 }

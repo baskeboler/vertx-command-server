@@ -23,4 +23,5 @@ public class EchoCommand implements Command {
   public int getValue() {
     return 0;
   }
+
 }
